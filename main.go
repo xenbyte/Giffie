@@ -206,31 +206,31 @@ type GifSearch struct {
 }
 
 func main() {
+	// 1
 	err := godotenv.Load(".env")
 	Token := os.Getenv("DISCORD_TOKEN")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println()
+	// 2
 	dg, err := discordgo.New("Bot " + Token)
-
 	if err != nil {
 		fmt.Println("Error creating a discord Session, ", err)
 	}
 
+	// 3
 	dg.AddHandler(ready)
-
 	dg.AddHandler(messageCreate)
 
+	// 4
 	err = dg.Open()
-
 	if err != nil {
 		fmt.Println("Error opening Discord Session, ", err)
 	}
-
 	fmt.Println("The bot is now running. Press CTRL-C to exit.")
 
+	// 5
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -241,21 +241,26 @@ func ready(s *discordgo.Session, event *discordgo.Event) {
 }
 
 func messageCreate(s *discordgo.Session, message *discordgo.MessageCreate) {
+	// 1
 	err := godotenv.Load(".env")
 	giphyToken := os.Getenv("GIPHY_TOKEN")
 	if err != nil {
 		log.Fatal(err)
 	}
+	// 2
 	if message.Author.ID == s.State.User.ID {
 		return
 	}
-
+	// 3
 	command := strings.Split(message.Content, " ")
+	// 4
 	if command[0] == "!search" && len(command) > 1 {
 		url := "https://api.giphy.com/v1/gifs/random"
-		gifKeyword := strings.Join(command[1:], " ")
 		var result GifSearch
-		client := http.Client{}
+		// 5
+		gifKeyword := strings.Join(command[1:], " ")
+
+		// 6
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			fmt.Println("Error in making a new Request", err)
@@ -264,6 +269,7 @@ func messageCreate(s *discordgo.Session, message *discordgo.MessageCreate) {
 		query.Add("api_key", giphyToken)
 		query.Add("tag", gifKeyword)
 		req.URL.RawQuery = query.Encode()
+		client := http.Client{}
 		res, err := client.Do(req)
 		if err != nil {
 			fmt.Println("Error in getting a response, ", err)
@@ -272,6 +278,7 @@ func messageCreate(s *discordgo.Session, message *discordgo.MessageCreate) {
 		if err := json.Unmarshal(body, &result); err != nil {
 			fmt.Println("Can not unmarshall JSON", err)
 		}
+		// 7
 		s.ChannelMessageSend(message.ChannelID, result.Data.EmbedUrl)
 	}
 }
