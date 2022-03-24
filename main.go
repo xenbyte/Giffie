@@ -280,5 +280,6 @@ func messageCreate(s *discordgo.Session, message *discordgo.MessageCreate) {
 		}
 		// 7
 		s.ChannelMessageSend(message.ChannelID, result.Data.EmbedUrl)
+		res.Body.Close()
 	}
 }
